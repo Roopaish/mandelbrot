@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Mandelbrot Set</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      overflow: hidden;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="mandelbrotCanvas" width="800" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById('mandelbrotCanvas');
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    const ctx = canvas.getContext('2d');
+
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    console.log(canvas)
+
+    let minRe = -2.0;
+    let maxRe = 1.0;
+    let minIm = -1.0;
+    let maxIm = 1.0;
+
+    const zoomFactor = 2;
+
+    function getColor(iterations) {
+      const hue = (iterations / 100) * 360; // Map iterations to the hue range (0-360)
+      const saturation = 100; // 100% saturation
+      const lightness = 50; // 50% lightness
+      return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+
+    // Function to draw the Mandelbrot set
+    function drawMandelbrot() {
+      for (let x = 0; x < canvasWidth; x++) {
+        for (let y = 0; y < canvasHeight; y++) {
+          const re = minRe + (x / canvasWidth) * (maxRe - minRe);
+          const im = minIm + (y / canvasHeight) * (maxIm - minIm);
+
+          let n = 0;
+          let zr = 0;
+          let zi = 0;
+
+          while (n < 100 && zr * zr + zi * zi < 4) {
+            const new_zr = zr * zr - zi * zi + re;
+            const new_zi = 2 * zr * zi + im;
+
+            zr = new_zr;
+            zi = new_zi;
+
+            n++;
+          }
+
+          const color = getColor(n);
+
+          ctx.fillStyle = color;
+          ctx.fillRect(x, y, 1, 1);
+        }
+      }
+    }
+
+    // Function to handle arrow key events for panning
+    function handleArrowKeys(event) {
+      const step = 0.1; // Adjust the panning speed
+      switch (event.key) {
+        case 'ArrowUp':
+          minIm += step;
+          maxIm += step;
+          break;
+        case 'ArrowDown':
+          minIm -= step;
+          maxIm -= step;
+          break;
+        case 'ArrowLeft':
+          minRe -= step;
+          maxRe -= step;
+          break;
+        case 'ArrowRight':
+          minRe += step;
+          maxRe += step;
+          break;
+      }
+      drawMandelbrot();
+    }
+
+    // Function to handle click events for zooming
+    function handleCanvasClick(event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      const clickedRe = minRe + (x / canvasWidth) * (maxRe - minRe);
+      const clickedIm = minIm + (y / canvasHeight) * (maxIm - minIm);
+
+      const newWidth = (maxRe - minRe) / zoomFactor;
+      const newHeight = (maxIm - minIm) / zoomFactor;
+
+      minRe = clickedRe - newWidth / 2;
+      maxRe = clickedRe + newWidth / 2;
+      minIm = clickedIm - newHeight / 2;
+      maxIm = clickedIm + newHeight / 2;
+
+      drawMandelbrot();
+    }
+
+    // Add event listeners
+    canvas.addEventListener('click', handleCanvasClick);
+    document.addEventListener('keydown', handleArrowKeys);
+
+    // Initial Mandelbrot set rendering
+    drawMandelbrot();
+
+  </script>
+</body>
+
+</html>
